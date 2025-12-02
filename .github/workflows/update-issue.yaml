@@ -20,9 +20,10 @@ jobs:
         run: |
           pip install jinja-cli
       - name: basic Shell
+        # The replacements with sed are used to avoid jinja complaining of undefined variables when the issue contains templated gh actions examples
         run: |
            gh issue view ${{ github.event.issue.html_url }} --json body -t '{{.body}}' >> text_body
-           jinja -D "this_issue" "${{ github.event.issue.number }}" -D "this_org" "${{ github.repository_owner }}" -o text_body_out text_body
+           sed -e 's/\${/\$kk/g' text_body | jinja -D "this_issue" "${{ github.event.issue.number }}" -D "this_org" "${{ github.repository_owner }}" | sed -e 's/\$kk/\${/g' >> text_body_out
            gh issue edit ${{ github.event.issue.html_url }} --body-file text_body_out
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
